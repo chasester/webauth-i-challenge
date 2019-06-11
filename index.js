@@ -29,11 +29,6 @@ server.use(express.json());
 server.use(cors());
 server.use(session(sessionConfig));
 
-server.use(function printSession(req, res, next) {
-  console.log('req.session', req.session);
-  return next();
-});
-
 // endpoints here
 const port = process.env.PORT || 3000; 
 
@@ -74,7 +69,7 @@ server.post("/api/login",
   (req,res,next) => 
   db.login(req.body.username, req.body.password)
   .then(result => {
-    req.session.views = 1;
+    req.session.token = result.token;
     res.status(200).json({...result, session: req.session})
   })
   .catch(err => res.status(400).json({error: err, message: "incorrect username or password"}))
@@ -101,7 +96,6 @@ function logger(req,res,next)
   }
 
 function protected(req, res, next) {
-  if(req.session.views) req.session.views++;
   if (req.session && req.session.token) {
     next();
   } else {
